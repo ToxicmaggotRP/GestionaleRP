@@ -1,0 +1,118 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum MoneyType {
+  CLEAN
+  DIRTY
+}
+
+enum TransactionType {
+  INCOME
+  EXPENSE
+}
+
+enum InventoryMovementType {
+  IN
+  OUT
+  ADJUSTMENT
+}
+
+model Contact {
+  id          Int      @id @default(autoincrement())
+  firstName   String
+  lastName    String?
+  alias       String?
+  phone       String?
+  type        String   @default("Cliente")
+  reliability Int      @default(3)
+  notes       String?
+  createdAt   DateTime @default(now())
+
+  sales       Sale[]
+}
+
+model Product {
+  id               Int      @id @default(autoincrement())
+  name             String
+  category         String?
+  quantity         Int      @default(0)
+  minimumQuantity  Int      @default(0)
+  purchasePrice    Float    @default(0)
+  salePrice        Float    @default(0)
+  createdAt        DateTime @default(now())
+
+  saleItems        SaleItem[]
+  movements        InventoryMovement[]
+}
+
+model Sale {
+  id          Int        @id @default(autoincrement())
+  contactId   Int?
+  contact     Contact?   @relation(fields: [contactId], references: [id], onDelete: SetNull)
+
+  total       Float
+  moneyType   MoneyType
+  notes       String?
+
+  createdAt   DateTime   @default(now())
+
+  items       SaleItem[]
+}
+
+model SaleItem {
+  id          Int      @id @default(autoincrement())
+
+  saleId      Int
+  productId   Int
+
+  quantity    Int
+  unitPrice   Float
+  total       Float
+
+  sale        Sale     @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  product     Product  @relation(fields: [productId], references: [id])
+}
+
+model Transaction {
+  id          Int             @id @default(autoincrement())
+
+  type        TransactionType
+  moneyType   MoneyType
+
+  amount      Float
+
+  category    String
+  description String?
+
+  createdAt   DateTime @default(now())
+}
+
+model InventoryMovement {
+  id          Int                    @id @default(autoincrement())
+
+  productId   Int
+  type        InventoryMovementType
+  quantity    Int
+  reason      String?
+
+  createdAt   DateTime @default(now())
+
+  product     Product                @relation(fields: [productId], references: [id], onDelete: Cascade)
+}
+
+model AuditLog {
+  id          Int      @id @default(autoincrement())
+
+  action      String
+  entity      String
+  entityId    Int?
+  details     String?
+
+  createdAt   DateTime @default(now())
+}
