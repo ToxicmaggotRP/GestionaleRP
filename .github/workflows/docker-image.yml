@@ -27,7 +27,7 @@ jobs:
       - name: Build and Push Docker Image
         uses: docker/build-push-action@v6
         with:
-          context: .
-          file: ./backend/dockerfile.yml
+          context: ./backend
+          file: ./backend/Dockerfile
           push: true
           tags: ghcr.io/toxicmaggotrp/gestionalerp:latest
